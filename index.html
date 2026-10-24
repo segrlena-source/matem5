@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тренажёр 5 класс</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #fff7f0;
+  --card: #ffffff;
+  --text: #22202a;
+  --muted: #6f6a7a;
+  --line: #ece4dc;
+  --accent: #ff4f9a;
+  --accent-ink: #ffffff;
+  --accent-soft: #ffe3ef;
+  --sun: #ffd23f;
+  --ok: #1f9d6b;
+  --ok-soft: #dcf5ea;
+  --bad: #e5484d;
+  --bad-soft: #fde4e4;
+  --hint-soft: #fff4cc;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17151c; --card: #221f29; --text: #f3f0f7; --muted: #a8a2b5; --line: #343040;
+    --accent: #ff5fa5; --accent-soft: #3d2032; --sun: #ffd23f;
+    --ok: #4cd29a; --ok-soft: #173a2c; --bad: #ff7b7f; --bad-soft: #3d1d20; --hint-soft: #3a3218;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17151c; --card: #221f29; --text: #f3f0f7; --muted: #a8a2b5; --line: #343040;
+  --accent: #ff5fa5; --accent-soft: #3d2032; --sun: #ffd23f;
+  --ok: #4cd29a; --ok-soft: #173a2c; --bad: #ff7b7f; --bad-soft: #3d1d20; --hint-soft: #3a3218;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+#app { max-width: 520px; margin: 0 auto; padding: 16px 16px 40px; }
+h1 { font-size: 1.6rem; margin: 8px 0 2px; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+.topics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.topic .tt { overflow-wrap: anywhere; hyphens: auto; }
+.topic {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px 12px; text-align: left; color: inherit; font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px; min-height: 96px;
+}
+.topic:active { transform: scale(.98); }
+.topic .em { font-size: 1.5rem; line-height: 1; }
+.topic .tt { font-weight: 650; line-height: 1.25; }
+.topic .best { color: var(--muted); font-size: .82rem; margin-top: auto; }
+.topic.all { grid-column: 1 / -1; background: var(--accent); color: var(--accent-ink); border-color: transparent; min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
+.topic.all .best { color: inherit; opacity: .85; margin: 0 0 0 auto; }
+
+.bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.back { background: none; border: none; color: var(--muted); font: inherit; padding: 6px 0; cursor: pointer; }
+.progress { flex: 1; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+.streak { font-size: .9rem; color: var(--muted); min-width: 3.2em; text-align: right; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px 18px; }
+.label { color: var(--muted); font-size: .85rem; margin-bottom: 10px; }
+.q { font-size: 2rem; font-weight: 650; text-align: center; margin: 10px 0 18px; line-height: 1.6; overflow-wrap: anywhere; }
+.q.long { font-size: 1.15rem; font-weight: 500; text-align: left; line-height: 1.5; }
+.q i { font-family: Georgia, "Times New Roman", serif; }
+
+.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: .78em; line-height: 1.15; margin: 0 .12em; }
+.fr > span { padding: 0 .2em; }
+.fr > span:first-child { border-bottom: 2px solid currentColor; }
+.mx { white-space: nowrap; }
+.fb .fr, .res-list .fr { font-size: .95em; }
+
+.ans-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+input.in {
+  font: inherit; font-size: 1.5rem; text-align: center; color: var(--text); background: var(--bg);
+  border: 2px solid var(--line); border-radius: 14px; padding: 10px 8px; width: 100%; max-width: 220px; outline: none;
+}
+input.in:focus { border-color: var(--accent); }
+input.in:disabled { opacity: .7; }
+.unit { font-size: 1.2rem; color: var(--muted); }
+.frac-in { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.frac-in .w { width: 74px; }
+.fr-in { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.fr-in input { width: 84px; padding: 6px; font-size: 1.3rem; }
+.fr-in hr { width: 100%; border: none; border-top: 3px solid var(--text); margin: 0; }
+.frac-cap { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 8px; }
+.cmp { display: flex; justify-content: center; gap: 12px; }
+.cmp button { width: 72px; height: 64px; font-size: 1.8rem; font-weight: 700; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+.cmp button.picked { border-color: var(--accent); background: var(--accent-soft); }
+
+.btn {
+  display: block; width: 100%; margin-top: 16px; padding: 14px; border: none; border-radius: 14px;
+  background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 650; font-size: 1.05rem; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--muted); font-weight: 500; margin-top: 6px; padding: 10px; }
+.btn:active { transform: scale(.99); }
+
+.fb { margin-top: 16px; border-radius: 14px; padding: 12px 14px; }
+.fb.ok { background: var(--ok-soft); }
+.fb.ok b { color: var(--ok); }
+.fb.bad { background: var(--bad-soft); }
+.fb.bad b { color: var(--bad); }
+.fb.hint { background: var(--hint-soft); }
+.fb ol { margin: 6px 0 0; padding-left: 1.3em; }
+.fb li { margin: 3px 0; }
+.pop { animation: pop .35s ease; }
+@keyframes pop { 0% { transform: scale(.96); } 60% { transform: scale(1.02); } 100% { transform: scale(1); } }
+.shake { animation: shake .3s ease; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.res { text-align: center; }
+.res .big { font-size: 3rem; font-weight: 750; margin: 6px 0; }
+.stars { font-size: 1.8rem; letter-spacing: 2px; }
+.res-list { text-align: left; margin-top: 14px; }
+.res-list .row { border-top: 1px solid var(--line); padding: 10px 0; }
+.res-list .row .qq { font-weight: 600; }
+.res-list .row .aa { color: var(--muted); font-size: .92rem; }
+.tally { display: flex; justify-content: center; gap: 16px; color: var(--muted); font-size: .92rem; flex-wrap: wrap; }
+@media (max-width: 360px) { .q { font-size: 1.7rem; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+// ---------- numbers ----------
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+const F = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return { n: n / g, d: d / g }; };
+const feq = (a, b) => a.n * b.d === b.n * a.d;
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const P = arr => arr[Math.floor(Math.random() * arr.length)];
+const fmtInt = n => (Math.abs(n) >= 10000 ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ") : String(n));
+function decFixed(int, k) { if (!k) return fmtInt(int); const s = String(int).padStart(k + 1, "0"); return fmtInt(+s.slice(0, -k)) + "," + s.slice(-k); }
+function decStr(int, k) { let s = decFixed(int, k); if (k) s = s.replace(/0+$/, "").replace(/,$/, ""); return s; }
+const fr = (n, d) => `<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const mx = (w, n, d) => `<span class="mx">${w}${fr(n, d)}</span>`;
+const X = "<i>x</i>";
+function fracShow(f) { if (f.d === 1) return fmtInt(f.n); if (f.n > f.d) return mx(Math.floor(f.n / f.d), f.n % f.d, f.d); return fr(f.n, f.d); }
+function numShow(f) {
+  if (f.d === 1) return fmtInt(f.n);
+  for (let k = 1; k <= 6; k++) { const p = 10 ** k; if (p % f.d === 0) return decStr(f.n * (p / f.d), k); }
+  return fracShow(f);
+}
+const znaki = k => (k === 1 ? "один знак" : k === 2 ? "два знака" : "три знака");
+
+// ---------- task generators ----------
+// each returns { q, kind: 'num'|'frac'|'cmp', ans, hint, steps, long?, unit?, form?, ansHTML? }
+const T = {};
+
+T.order = () => {
+  const t = R(0, 3);
+  if (t === 0) { const a = R(10, 99), b = R(2, 12), c = R(2, 12), p = b * c;
+    return { q: `${a} + ${b} · ${c}`, ans: F(a + p), steps: [`Сначала умножение: ${b} · ${c} = ${p}`, `Потом сложение: ${a} + ${p} = ${a + p}`] }; }
+  if (t === 1) { const c = R(2, 9), q = R(2, 12), b = R(1, 50), a = b + c * q;
+    return { q: `(${a} − ${b}) : ${c}`, ans: F(q), steps: [`Сначала скобки: ${a} − ${b} = ${c * q}`, `Потом деление: ${c * q} : ${c} = ${q}`] }; }
+  if (t === 2) { const d = R(2, 9), e = R(2, 9), c = d * e, a = R(4, 12), b = R(4, 12), ab = a * b;
+    return { q: `${a} · ${b} − ${c} : ${d}`, ans: F(ab - e), steps: [`Умножение: ${a} · ${b} = ${ab}`, `Деление: ${c} : ${d} = ${e}`, `Вычитание: ${ab} − ${e} = ${ab - e}`] }; }
+  const a = R(2, 9), b = R(3, 25), c = R(3, 25);
+  return { q: `${a} · (${b} + ${c})`, ans: F(a * (b + c)), steps: [`Сначала скобки: ${b} + ${c} = ${b + c}`, `Потом умножение: ${a} · ${b + c} = ${a * (b + c)}`] };
+};
+T.order.hint = "Сначала действия в скобках, потом умножение и деление, потом сложение и вычитание.";
+
+T.column = () => {
+  const t = R(0, 2);
+  if (t === 0) { const a = R(102, 989), u = R(1, 9), tn = R(1, 9) * 10, b = tn + u;
+    return { q: `${a} · ${b}`, ans: F(a * b), hint: "Умножай по частям: на десятки и на единицы, потом сложи.",
+      steps: [`${a} · ${b} = ${a} · ${tn} + ${a} · ${u}`, `= ${fmtInt(a * tn)} + ${fmtInt(a * u)} = ${fmtInt(a * b)}`] }; }
+  if (t === 1) { const b = R(12, 48), q = R(12, 99), a = b * q;
+    return { q: `${fmtInt(a)} : ${b}`, ans: F(q), hint: "Прикинь, сколько раз делитель помещается в первые цифры, и проверь себя умножением.",
+      steps: [`Делим столбиком: ${fmtInt(a)} : ${b} = ${q}`, `Проверка: ${q} · ${b} = ${fmtInt(a)}`] }; }
+  const a = R(1012, 9899), b = R(3, 9), th = Math.floor(a / 1000) * 1000, rest = a - th;
+  return { q: `${fmtInt(a)} · ${b}`, ans: F(a * b), hint: "Умножай по частям: тысячи отдельно, остальное отдельно, потом сложи.",
+    steps: [`${fmtInt(a)} · ${b} = ${fmtInt(th)} · ${b} + ${rest} · ${b}`, `= ${fmtInt(th * b)} + ${fmtInt(rest * b)} = ${fmtInt(a * b)}`] };
+};
+
+T.equations = () => {
+  const t = R(0, 5);
+  if (t === 0) { const x = R(12, 300), a = R(12, 300), b = x + a;
+    return { q: `${X} + ${a} = ${b}`, ans: F(x), hint: "Чтобы найти неизвестное слагаемое, из суммы вычти известное слагаемое.", steps: [`${X} = ${b} − ${a}`, `${X} = ${x}`] }; }
+  if (t === 1) { const x = R(10, 200), b = R(10, 200), a = x + b;
+    return { q: `${a} − ${X} = ${b}`, ans: F(x), hint: "Чтобы найти неизвестное вычитаемое, из уменьшаемого вычти разность.", steps: [`${X} = ${a} − ${b}`, `${X} = ${x}`] }; }
+  if (t === 2) { const a = R(10, 200), b = R(10, 300), x = a + b;
+    return { q: `${X} − ${a} = ${b}`, ans: F(x), hint: "Чтобы найти неизвестное уменьшаемое, к разности прибавь вычитаемое.", steps: [`${X} = ${b} + ${a}`, `${X} = ${x}`] }; }
+  if (t === 3) { const a = R(3, 15), x = R(4, 40);
+    return { q: `${a} · ${X} = ${a * x}`, ans: F(x), hint: "Чтобы найти неизвестный множитель, произведение раздели на известный множитель.", steps: [`${X} = ${a * x} : ${a}`, `${X} = ${x}`] }; }
+  if (t === 4) { const a = R(2, 12), b = R(3, 40), x = a * b;
+    return { q: `${X} : ${a} = ${b}`, ans: F(x), hint: "Чтобы найти неизвестное делимое, частное умножь на делитель.", steps: [`${X} = ${b} · ${a}`, `${X} = ${x}`] }; }
+  const a = R(2, 9), x = R(2, 15), c = R(3, 60), d = a * x + c;
+  return { q: `${a} · ${X} + ${c} = ${d}`, ans: F(x), hint: `Сначала найди, чему равно ${a} · ${X}: из ${d} вычти ${c}.`,
+    steps: [`${a} · ${X} = ${d} − ${c} = ${a * x}`, `${X} = ${a * x} : ${a} = ${x}`] };
+};
+
+T.fractions = () => {
+  const t = R(0, 4);
+  if (t === 0) {
+    if (R(0, 1)) { const d = R(3, 15); let a = R(1, d - 1), b = R(1, d - 1); while (b === a) b = R(1, d - 1);
+      return { kind: "cmp", q: `${fr(a, d)} &nbsp;?&nbsp; ${fr(b, d)}`, ans: a > b ? ">" : "<",
+        hint: "Знаменатели одинаковые: больше та дробь, у которой больше числитель.", steps: [`${a} ${a > b ? ">" : "<"} ${b}, значит ${fr(a, d)} ${a > b ? ">" : "<"} ${fr(b, d)}`] }; }
+    const n = R(1, 7); let d1 = R(n + 1, 15), d2 = R(n + 1, 15); while (d2 === d1) d2 = R(n + 1, 15);
+    const s = d1 < d2 ? ">" : "<";
+    return { kind: "cmp", q: `${fr(n, d1)} &nbsp;?&nbsp; ${fr(n, d2)}`, ans: s,
+      hint: "Числители одинаковые: больше та дробь, у которой знаменатель меньше — доли крупнее.", steps: [`Знаменатель ${Math.min(d1, d2)} меньше, доли крупнее`, `${fr(n, d1)} ${s} ${fr(n, d2)}`] };
+  }
+  if (t === 1 || t === 2) {
+    const d = R(5, 15); let a = R(1, d - 1), b = R(1, d - 1);
+    if (t === 2) { if (a === b) a = Math.min(d - 1, a + 1) === a ? a - 1 : a + 1; if (a < b) [a, b] = [b, a]; if (a === b) { a = d - 1; b = 1; } }
+    const n = t === 1 ? a + b : a - b, res = F(n, d), sign = t === 1 ? "+" : "−";
+    const steps = [`${fr(a, d)} ${sign} ${fr(b, d)} = ${fr(`${a} ${sign} ${b}`, d)} = ${fr(n, d)}`];
+    if (res.d !== d || res.n > res.d) steps.push(`${fr(n, d)} = ${fracShow(res)}`);
+    return { kind: "frac", q: `${fr(a, d)} ${sign} ${fr(b, d)}`, ans: res, ansHTML: fracShow(res),
+      hint: t === 1 ? "Знаменатель оставляем тем же, а числители складываем." : "Знаменатель оставляем тем же, а из первого числителя вычитаем второй.", steps };
+  }
+  const b = R(2, 10), a = R(1, b - 1), k = R(2, 15), N = b * k;
+  if (t === 3) return { q: `Найди ${fr(a, b)} от числа ${N}`, ans: F(a * k), hint: "Раздели число на знаменатель и умножь на числитель.",
+    steps: [`${N} : ${b} = ${k} — это ${fr(1, b)}`, `${k} · ${a} = ${a * k}`] };
+  return { q: `${fr(a, b)} числа равны ${a * k}. Найди всё число.`, long: true, ans: F(N),
+    hint: "Раздели на числитель — узнаешь одну долю. Потом умножь на знаменатель.", steps: [`${a * k} : ${a} = ${k} — это ${fr(1, b)} числа`, `${k} · ${b} = ${N}`] };
+};
+
+T.mixed = () => {
+  const t = R(0, 3), d = R(3, 9);
+  if (t === 0) { const w = R(1, 9), r = R(1, d - 1), n = w * d + r;
+    return { kind: "frac", form: "mixed", q: `Выдели целую часть: ${fr(n, d)}`, long: true, ans: F(n, d), ansHTML: mx(w, r, d),
+      hint: "Раздели числитель на знаменатель: неполное частное — целая часть, остаток — новый числитель.", steps: [`${n} : ${d} = ${w} (остаток ${r})`, `${fr(n, d)} = ${mx(w, r, d)}`] }; }
+  if (t === 1) { const w = R(1, 9), r = R(1, d - 1), n = w * d + r;
+    return { kind: "frac", form: "improper", q: `Запиши в виде неправильной дроби: ${mx(w, r, d)}`, long: true, ans: F(n, d), ansHTML: fr(n, d),
+      hint: "Умножь целую часть на знаменатель и прибавь числитель. Знаменатель остаётся тем же.", steps: [`${w} · ${d} + ${r} = ${n}`, `${mx(w, r, d)} = ${fr(n, d)}`] }; }
+  const w1 = R(2, 8), r1 = R(1, d - 1); let w2 = R(1, 6), r2 = R(1, d - 1);
+  if (t === 2) {
+    const W = w1 + w2, S = r1 + r2, res = F(W * d + S, d);
+    const steps = [`Целые части: ${w1} + ${w2} = ${W}`, `Дроби: ${fr(r1, d)} + ${fr(r2, d)} = ${fr(S, d)}`];
+    if (S >= d) steps.push(`${fr(S, d)} = ${S === d ? 1 : mx(1, S - d, d)}, прибавляем к ${W}`);
+    steps.push(`Ответ: ${fracShow(res)}`);
+    return { kind: "frac", q: `${mx(w1, r1, d)} + ${mx(w2, r2, d)}`, ans: res, ansHTML: fracShow(res),
+      hint: "Складывай отдельно целые части и отдельно дроби. Если дробь вышла неправильной — выдели из неё целую часть.", steps };
+  }
+  if (w2 >= w1) w2 = w1 - 1; if (w2 < 1) w2 = 1;
+  let a1 = r1, a2 = r2; if (a1 < a2) [a1, a2] = [a2, a1];
+  const W = w1 - w2, S = a1 - a2, res = F(W * d + S, d);
+  return { kind: "frac", q: `${mx(w1, a1, d)} − ${mx(w2, a2, d)}`, ans: res, ansHTML: fracShow(res),
+    hint: "Вычитай отдельно целые части и отдельно дроби.", steps: [`Целые части: ${w1} − ${w2} = ${W}`, `Дроби: ${fr(a1, d)} − ${fr(a2, d)} = ${S ? fr(S, d) : "0"}`, `Ответ: ${fracShow(res)}`] };
+};
+
+function rdec(lo, hi) { let v = R(lo, hi); while (v % 10 === 0) v++; return v; }
+T.decimals = () => {
+  const t = R(0, 5);
+  if (t === 0 || t === 1) {
+    const k1 = R(1, 2), k2 = R(1, 2), K = Math.max(k1, k2);
+    let a = rdec(11, 9999) * 10 ** (K - k1), b = rdec(11, 9999) * 10 ** (K - k2);
+    if (t === 1 && a < b) [a, b] = [b, a];
+    if (t === 1 && a === b) a += 10 ** K;
+    const r = t === 0 ? a + b : a - b, sign = t === 0 ? "+" : "−";
+    return { q: `${decStr(a, K)} ${sign} ${decStr(b, K)}`, ans: F(r, 10 ** K), ansHTML: decStr(r, K),
+      hint: "Пиши запятую под запятой. Если знаков после запятой разное число, допиши нули.",
+      steps: [`Уравниваем знаки после запятой: ${decFixed(a, K)} ${sign} ${decFixed(b, K)}`, `= ${decStr(r, K)}`] };
+  }
+  if (t === 2) {
+    const k = R(1, 3), a = rdec(11, 9999), m = P([10, 100, 1000]), z = String(m).length - 1, mul = R(0, 1);
+    const res = mul ? F(a * m, 10 ** k) : F(a, 10 ** k * m);
+    return { q: `${decStr(a, k)} ${mul ? "·" : ":"} ${fmtInt(m)}`, ans: res, ansHTML: numShow(res),
+      hint: "При умножении на 10, 100, 1000 запятая переносится вправо на столько знаков, сколько нулей. При делении — влево.",
+      steps: [`В числе ${fmtInt(m)} ${z === 1 ? "один ноль" : z === 2 ? "два нуля" : "три нуля"} — переносим запятую ${mul ? "вправо" : "влево"} на ${z}`, `Ответ: ${numShow(res)}`] };
+  }
+  if (t === 3) { const k = R(1, 2), a = rdec(11, 999), n = R(2, 9);
+    return { q: `${decStr(a, k)} · ${n}`, ans: F(a * n, 10 ** k), ansHTML: decStr(a * n, k),
+      hint: "Умножь как обычные числа, не глядя на запятую. Потом отдели справа столько знаков, сколько было после запятой.",
+      steps: [`${a} · ${n} = ${fmtInt(a * n)}`, `Отделяем ${znaki(k)}: ${decStr(a * n, k)}`] }; }
+  if (t === 4) { const a = rdec(2, 99), b = R(2, 9);
+    return { q: `${decStr(a, 1)} · ${decStr(b, 1)}`, ans: F(a * b, 100), ansHTML: decStr(a * b, 2),
+      hint: "Перемножь числа без запятых. Потом отдели справа столько знаков, сколько их всего после запятой в обоих множителях.",
+      steps: [`${a} · ${b} = ${a * b}`, `После запятой всего два знака: ${decStr(a * b, 2)}`] }; }
+  const n = R(2, 9), k = R(1, 2), q = rdec(11, 999);
+  return { q: `${decStr(q * n, k)} : ${n}`, ans: F(q, 10 ** k), ansHTML: decStr(q, k),
+    hint: "Дели как обычные числа. Когда доходишь до запятой, ставь запятую и в ответе.",
+    steps: [`${decStr(q * n, k)} : ${n} = ${decStr(q, k)}`, `Проверка: ${decStr(q, k)} · ${n} = ${decStr(q * n, k)}`] };
+};
+
+T.rounding = () => {
+  const hint = "Смотри на цифру справа от разряда, до которого округляешь: 0–4 — оставляем как есть, 5–9 — увеличиваем на единицу.";
+  if (R(0, 1)) {
+    const N = R(1001, 99999), [place, name] = P([[10, "десятков"], [100, "сотен"], [1000, "тысяч"]]);
+    const dig = Math.floor(N / (place / 10)) % 10, res = Math.floor(N / place) * place + (dig >= 5 ? place : 0);
+    return { q: `Округли ${fmtInt(N)} до ${name}`, long: true, ans: F(res), hint,
+      steps: [`Справа от разряда ${name} стоит цифра ${dig}`, dig >= 5 ? "Она 5 или больше — увеличиваем разряд на 1, дальше нули" : "Она меньше 5 — разряд не меняем, дальше нули", `${fmtInt(N)} ≈ ${fmtInt(res)}`] };
+  }
+  const v = rdec(10001, 99999), [t, name] = P([[0, "единиц"], [1, "десятых"], [2, "сотых"]]), sc = 10 ** (3 - t);
+  const dig = Math.floor(v / (sc / 10)) % 10, res = Math.floor(v / sc) + (dig >= 5 ? 1 : 0);
+  return { q: `Округли ${decStr(v, 3)} до ${name}`, long: true, ans: F(res, 10 ** t), ansHTML: decFixed(res, t), hint,
+    steps: [`Справа от разряда ${name} стоит цифра ${dig}`, dig >= 5 ? "Она 5 или больше — увеличиваем на 1" : "Она меньше 5 — оставляем как есть", `${decStr(v, 3)} ≈ ${decFixed(res, t)}`] };
+};
+
+const PCTS = [1, 5, 10, 20, 25, 30, 40, 50, 60, 75];
+const PCT_TPL = [
+  { Ns: [50, 60, 75, 80, 100, 120], t: (p, N) => `В параллели пятых классов ${N} учеников. ${p}% из них ходят в кружок робототехники. Сколько учеников ходят в кружок?` },
+  { Ns: [120, 160, 200, 240, 300, 400], t: (p, N) => `В книге ${N} страниц. Маша прочитала ${p}% книги. Сколько страниц она прочитала?` },
+  { Ns: [40, 60, 80, 100, 120, 200], t: (p, N) => `Длина дороги ${N} км. Отремонтировали ${p}% дороги. Сколько километров отремонтировали?` },
+  { Ns: [200, 300, 400, 500, 800, 1000], t: (p, N) => `На школьную ярмарку испекли ${N} пирожков. К обеду разобрали ${p}%. Сколько пирожков разобрали?` },
+];
+function pctHint(p) {
+  const extra = { 50: " 50% — это половина.", 25: " 25% — это четверть.", 10: " 10% — это десятая часть.", 1: " 1% — это сотая часть." }[p] || "";
+  return "Найти процент от числа: умножь число на процент и раздели на 100." + extra;
+}
+T.percents = () => {
+  if (R(0, 1)) {
+    const p = P(PCTS), u = 100 / gcd(p, 100), N = u * R(Math.ceil(20 / u), Math.floor(800 / u)), r = N * p / 100;
+    return { q: `Найди ${p}% от числа ${N}`, long: true, ans: F(r), hint: pctHint(p), steps: [`${N} · ${p} : 100 = ${fmtInt(N * p)} : 100 = ${r}`] };
+  }
+  for (;;) {
+    const tpl = P(PCT_TPL), N = P(tpl.Ns), ok = PCTS.filter(p => (N * p) % 100 === 0 && p !== 1);
+    if (!ok.length) continue;
+    const p = P(ok), r = N * p / 100;
+    return { q: tpl.t(p, N), long: true, ans: F(r), hint: pctHint(p), steps: [`${N} · ${p} : 100 = ${fmtInt(N * p)} : 100 = ${r}`] };
+  }
+};
+
+T.geometry = () => {
+  const t = R(0, 5);
+  if (t === 0) { const a = R(3, 40), b = R(2, 30);
+    return { q: `Стороны прямоугольника ${a} см и ${b} см. Найди периметр.`, long: true, unit: "см", ans: F(2 * (a + b)),
+      hint: "Периметр — это сумма длин всех сторон: P = (a + b) · 2.", steps: [`P = (${a} + ${b}) · 2 = ${a + b} · 2 = ${2 * (a + b)} см`] }; }
+  if (t === 1) { const a = R(3, 30), b = R(2, 25);
+    return { q: `Стороны прямоугольника ${a} см и ${b} см. Найди площадь.`, long: true, unit: "см²", ans: F(a * b),
+      hint: "Площадь прямоугольника: S = a · b.", steps: [`S = ${a} · ${b} = ${a * b} см²`] }; }
+  if (t === 2) { const a = R(3, 20), b = R(3, 25);
+    return { q: `Площадь прямоугольника ${a * b} см², одна сторона ${a} см. Найди другую сторону.`, long: true, unit: "см", ans: F(b),
+      hint: "Раздели площадь на известную сторону.", steps: [`${a * b} : ${a} = ${b} см`] }; }
+  if (t === 3) { const s = R(2, 25);
+    return { q: `Периметр квадрата ${4 * s} см. Найди его площадь.`, long: true, unit: "см²", ans: F(s * s),
+      hint: "Сначала найди сторону: у квадрата четыре равные стороны.", steps: [`Сторона: ${4 * s} : 4 = ${s} см`, `Площадь: ${s} · ${s} = ${s * s} см²`] }; }
+  if (t === 4) { const a = R(2, 12), b = R(2, 12), c = R(2, 12);
+    return { q: `Длина коробки ${a} см, ширина ${b} см, высота ${c} см. Найди её объём.`, long: true, unit: "см³", ans: F(a * b * c),
+      hint: "Объём прямоугольного параллелепипеда: V = a · b · c.", steps: [`V = ${a} · ${b} · ${c} = ${a * b} · ${c} = ${a * b * c} см³`] }; }
+  const s = R(2, 10);
+  return { q: `Ребро куба ${s} см. Найди объём куба.`, long: true, unit: "см³", ans: F(s ** 3),
+    hint: "Объём куба: V = a · a · a.", steps: [`V = ${s} · ${s} · ${s} = ${s ** 3} см³`] };
+};
+
+T.powers = () => {
+  const t = R(0, 2);
+  if (t === 0) { const n = R(2, 20);
+    return { q: `${n}<sup>2</sup>`, ans: F(n * n), hint: "Квадрат числа — это число, умноженное само на себя.", steps: [`${n}<sup>2</sup> = ${n} · ${n} = ${n * n}`] }; }
+  if (t === 1) { const n = R(2, 10);
+    return { q: `${n}<sup>3</sup>`, ans: F(n ** 3), hint: "Куб числа — это число, умноженное само на себя три раза.", steps: [`${n}<sup>3</sup> = ${n} · ${n} · ${n} = ${n ** 3}`] }; }
+  const a = R(2, 12), b = R(2, 5);
+  return { q: `${a}<sup>2</sup> + ${b}<sup>3</sup>`, ans: F(a * a + b ** 3), hint: "Сначала возведи в степень, потом складывай.",
+    steps: [`${a}<sup>2</sup> = ${a * a}`, `${b}<sup>3</sup> = ${b ** 3}`, `${a * a} + ${b ** 3} = ${a * a + b ** 3}`] };
+};
+
+const TOPICS = [
+  { id: "order", em: "🧮", title: "Порядок действий" },
+  { id: "column", em: "✖️", title: "Умножение и деление" },
+  { id: "equations", em: "🔍", title: "Уравнения" },
+  { id: "fractions", em: "🍕", title: "Обыкновенные дроби" },
+  { id: "mixed", em: "🧩", title: "Смешанные числа" },
+  { id: "decimals", em: "🔢", title: "Десятичные дроби" },
+  { id: "rounding", em: "🎯", title: "Округление" },
+  { id: "percents", em: "💯", title: "Проценты" },
+  { id: "geometry", em: "📐", title: "Площадь, периметр, объём" },
+  { id: "powers", em: "⚡", title: "Квадрат и куб числа" },
+];
+const ROUND = 10;
+
+function makeTask(topicId) {
+  const id = topicId === "all" ? P(TOPICS).id : topicId;
+  const t = T[id]();
+  t.kind = t.kind || "num";
+  t.hint = t.hint || T[id].hint;
+  t.topic = id;
+  if (!t.ansHTML) t.ansHTML = t.kind === "cmp" ? t.ans : t.kind === "frac" ? fracShow(t.ans) : numShow(t.ans);
+  return t;
+}
+
+// ---------- answers ----------
+const clean = s => (s || "").replace(/[\s  ]/g, "");
+function parseNum(s) {
+  s = clean(s).replace(",", ".");
+  let m = s.match(/^(\d+)(?:\.(\d+))?$/);
+  if (m) { const k = m[2] ? m[2].length : 0; return F(parseInt(m[1], 10) * 10 ** k + (m[2] ? parseInt(m[2], 10) : 0), 10 ** k); }
+  m = s.match(/^(\d+)\/(\d+)$/);
+  if (m && +m[2] > 0) return F(+m[1], +m[2]);
+  return null;
+}
+function readAnswer(task) {
+  if (task.kind === "num") {
+    const raw = clean(document.getElementById("a-num").value);
+    if (!raw) return { empty: true };
+    const v = parseNum(raw);
+    if (!v) return { msg: "Не получилось прочитать ответ. Пиши цифрами, дробную часть — через запятую." };
+    return { v };
+  }
+  const w = clean(document.getElementById("a-w")?.value), n = clean(document.getElementById("a-n").value), d = clean(document.getElementById("a-d").value);
+  if (!w && !n && !d) return { empty: true };
+  if ([w, n, d].some(x => x && !/^\d+$/.test(x))) return { msg: "В клетках должны быть только цифры." };
+  if ((n && !d) || (!n && d)) return { msg: "Заполни и числитель, и знаменатель." };
+  if (d && +d === 0) return { msg: "Знаменатель не может быть нулём." };
+  const W = w ? +w : 0;
+  const v = n ? F(W * +d + +n, +d) : F(W);
+  return { v, w: W, n: n ? +n : 0, d: d ? +d : 1 };
+}
+function formProblem(task, a) {
+  if (task.form === "mixed" && !(a.w >= 1 && a.n >= 1 && a.n < a.d)) return "Число верное, но запиши его как смешанное: целая часть и правильная дробь.";
+  if (task.form === "improper" && !(a.w === 0 && a.n > a.d)) return "Число верное, но запиши его неправильной дробью — без целой части.";
+  return null;
+}
+
+// ---------- storage (best scores) ----------
+function loadBest() { try { return JSON.parse(localStorage.getItem("mt5-best") || "{}"); } catch (e) { return {}; } }
+function saveBest(id, score) { try { const b = loadBest(); if (!(b[id] >= score)) { b[id] = score; localStorage.setItem("mt5-best", JSON.stringify(b)); } } catch (e) {} }
+
+// ---------- telegram ----------
+const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== undefined ? window.Telegram.WebApp : null;
+function haptic(type) { try { tg && tg.HapticFeedback.notificationOccurred(type); } catch (e) {} }
+if (tg) {
+  try {
+    tg.ready(); tg.expand();
+    if (tg.colorScheme) document.documentElement.dataset.theme = tg.colorScheme;
+    tg.onEvent("themeChanged", () => { document.documentElement.dataset.theme = tg.colorScheme; });
+    tg.BackButton.onClick(() => home());
+  } catch (e) {}
+}
+function backBtn(show) { try { if (tg) show ? tg.BackButton.show() : tg.BackButton.hide(); } catch (e) {} }
+
+// ---------- screens ----------
+const app = document.getElementById("app");
+let S = null;
+const PRAISE = ["Верно!", "Точно!", "Отлично!", "Так и есть!", "Правильно!"];
+
+function home() {
+  S = null; backBtn(false);
+  const best = loadBest();
+  const bestTxt = id => (best[id] != null ? `лучший: ${best[id]} из ${ROUND}` : "ещё не решал");
+  app.innerHTML = `
+    <h1>Тренажёр · 5 класс</h1>
+    <p class="sub">Выбери тему. В каждом раунде ${ROUND} задач.</p>
+    <div class="topics">
+      <button class="topic all" data-t="all"><span class="em">🎲</span><span class="tt">Всё вперемешку</span><span class="best">${bestTxt("all")}</span></button>
+      ${TOPICS.map(t => `<button class="topic" data-t="${t.id}"><span class="em">${t.em}</span><span class="tt">${t.title}</span><span class="best">${bestTxt(t.id)}</span></button>`).join("")}
+    </div>`;
+  app.querySelectorAll(".topic").forEach(b => b.onclick = () => start(b.dataset.t));
+  window.scrollTo(0, 0);
+}
+
+function start(topicId) {
+  S = { topic: topicId, i: 0, results: [], streak: 0, tasks: [] };
+  backBtn(true);
+  next();
+}
+
+function next() {
+  if (S.i >= ROUND) return results();
+  const task = makeTask(S.topic);
+  S.tasks.push(task); S.tries = 0; S.done = false;
+  renderTask(task);
+}
+
+function answerBox(task) {
+  if (task.kind === "cmp") return `<div class="cmp">${["<", "=", ">"].map(s => `<button data-s="${s}">${s}</button>`).join("")}</div>`;
+  if (task.kind === "frac") {
+    const whole = task.form === "improper" ? "" : `<input class="in w" id="a-w" inputmode="numeric" autocomplete="off" aria-label="целая часть">`;
+    return `<div class="frac-in">${whole}<div class="fr-in"><input class="in" id="a-n" inputmode="numeric" autocomplete="off" aria-label="числитель"><hr><input class="in" id="a-d" inputmode="numeric" autocomplete="off" aria-label="знаменатель"></div></div>
+      <div class="frac-cap">${task.form === "improper" ? "числитель и знаменатель" : "целая часть (если есть), числитель и знаменатель"}</div>`;
+  }
+  return `<div class="ans-row"><input class="in" id="a-num" inputmode="decimal" autocomplete="off" placeholder="ответ">${task.unit ? `<span class="unit">${task.unit}</span>` : ""}</div>`;
+}
+
+function renderTask(task) {
+  const tTitle = TOPICS.find(t => t.id === task.topic).title;
+  app.innerHTML = `
+    <div class="bar">
+      <button class="back" id="back">← Темы</button>
+      <div class="progress"><i style="width:${(S.i / ROUND) * 100}%"></i></div>
+      <div class="streak">${S.streak >= 2 ? "🔥 " + S.streak : ""}</div>
+    </div>
+    <div class="card" id="card">
+      <div class="label">Задача ${S.i + 1} из ${ROUND} · ${tTitle}</div>
+      <div class="q${task.long ? " long" : ""}">${task.q}</div>
+      ${answerBox(task)}
+      <div id="fb"></div>
+      ${task.kind === "cmp" ? "" : `<button class="btn" id="go">Проверить</button>`}
+      <button class="btn ghost" id="show">Показать решение</button>
+    </div>`;
+  document.getElementById("back").onclick = home;
+  document.getElementById("show").onclick = () => finish(task, "miss");
+  const go = document.getElementById("go");
+  if (go) go.onclick = () => (S.done ? advance() : submit(task));
+  app.querySelectorAll(".cmp button").forEach(b => b.onclick = () => {
+    if (S.done) return;
+    app.querySelectorAll(".cmp button").forEach(x => x.classList.remove("picked"));
+    b.classList.add("picked");
+    submit(task, b.dataset.s);
+  });
+  app.querySelectorAll("input.in").forEach(inp => inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); S.done ? advance() : submit(task); } }));
+  const first = app.querySelector("input.in");
+  if (first) first.focus();
+}
+
+function feedback(html, cls) {
+  const fb = document.getElementById("fb");
+  fb.innerHTML = `<div class="fb ${cls}">${html}</div>`;
+  const card = document.getElementById("card");
+  card.classList.remove("pop", "shake"); void card.offsetWidth;
+  card.classList.add(cls === "ok" ? "pop" : cls === "bad" || cls === "hint" ? "shake" : "pop");
+}
+
+function submit(task, cmpSymbol) {
+  let ok;
+  if (task.kind === "cmp") ok = cmpSymbol === task.ans;
+  else {
+    const a = readAnswer(task);
+    if (a.empty) return feedback("Сначала впиши ответ 🙂", "hint");
+    if (a.msg) return feedback(a.msg, "hint");
+    ok = feq(a.v, task.ans);
+    if (ok) { const fp = formProblem(task, a); if (fp) return feedback(fp, "hint"); }
+  }
+  S.tries++;
+  if (ok) return finish(task, S.tries === 1 ? "first" : "second");
+  haptic("error");
+  if (S.tries === 1) return feedback(`<b>Пока не так.</b> Подсказка: ${task.hint}<br>Попробуй ещё раз.`, "hint");
+  finish(task, "miss");
+}
+
+function finish(task, result) {
+  if (S.done) return;
+  S.done = true;
+  S.results.push(result);
+  S.streak = result === "first" ? S.streak + 1 : 0;
+  app.querySelectorAll("input.in, .cmp button").forEach(x => (x.disabled = true));
+  const show = document.getElementById("show"); if (show) show.remove();
+  if (result !== "miss") {
+    haptic("success");
+    feedback(`<b>${P(PRAISE)}</b>${result === "second" ? " Со второй попытки — тоже считается." : ""}`, "ok");
+  } else {
+    feedback(`<b>Правильный ответ: ${task.ansHTML}${task.unit ? " " + task.unit : ""}</b><div>Как решать:</div><ol>${task.steps.map(s => `<li>${s}</li>`).join("")}</ol>`, "bad");
+  }
+  let go = document.getElementById("go");
+  if (!go) { go = document.createElement("button"); go.className = "btn"; go.id = "go"; document.getElementById("card").appendChild(go); go.onclick = advance; }
+  go.textContent = S.i + 1 >= ROUND ? "Итоги" : "Дальше →";
+  go.focus();
+  const bar = app.querySelector(".progress > i"); if (bar) bar.style.width = `${((S.i + 1) / ROUND) * 100}%`;
+}
+
+function advance() { S.i++; next(); }
+
+function results() {
+  const first = S.results.filter(r => r === "first").length;
+  const second = S.results.filter(r => r === "second").length;
+  const miss = S.results.filter(r => r === "miss").length;
+  saveBest(S.topic, first);
+  const stars = first >= 9 ? 3 : first >= 7 ? 2 : first >= 4 ? 1 : 0;
+  const msg = first === ROUND ? "Все с первой попытки. Сильно!" : first >= 7 ? "Отличный раунд." : first >= 4 ? "Неплохо. Ещё раунд — и будет лучше." : "Тема пока сложная. Посмотри решения ниже и попробуй ещё раз.";
+  const wrong = S.tasks.map((t, i) => ({ t, r: S.results[i] })).filter(x => x.r !== "first");
+  app.innerHTML = `
+    <div class="card res">
+      <div class="stars">${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}</div>
+      <div class="big">${first} из ${ROUND}</div>
+      <div>с первой попытки</div>
+      <p>${msg}</p>
+      <div class="tally"><span>со второй: ${second}</span><span>не получилось: ${miss}</span></div>
+      ${wrong.length ? `<div class="res-list"><div class="label">Где были ошибки</div>${wrong.map(x => `<div class="row"><div class="qq${x.t.long ? "" : ""}">${x.t.q}</div><div class="aa">ответ: ${x.t.ansHTML}${x.t.unit ? " " + x.t.unit : ""}</div></div>`).join("")}</div>` : ""}
+      <button class="btn" id="again">Ещё раунд</button>
+      <button class="btn ghost" id="home">К темам</button>
+    </div>`;
+  document.getElementById("again").onclick = () => start(S.topic);
+  document.getElementById("home").onclick = home;
+  window.scrollTo(0, 0);
+}
+
+home();
+</script>
+</body>
+</html>
